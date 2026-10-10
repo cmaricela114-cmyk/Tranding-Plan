@@ -1,2 +1,276 @@
 # Tranding-Plan
 Un trading plan bastante claro con reglas claves 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trading Plan Nasdaq ICT</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1d1d1b;--mut:#6b6a64;--bd:#e2e0d8;--ac:#b8860b;--ok:#2e7d32;--bad:#c62828;--warn:#e08a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141413;--card:#1f1f1d;--tx:#eceae2;--mut:#9b9a92;--bd:#34332f;--ac:#e0b43c;--ok:#66bb6a;--bad:#ef5350;--warn:#ffb300}}
+:root[data-theme="dark"]{--bg:#141413;--card:#1f1f1d;--tx:#eceae2;--mut:#9b9a92;--bd:#34332f;--ac:#e0b43c;--ok:#66bb6a;--bad:#ef5350;--warn:#ffb300}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+header{padding:16px 16px 8px}
+h1{margin:0;font-size:20px}
+.sub{color:var(--mut);font-size:13px;margin-top:2px}
+nav{display:flex;gap:6px;padding:8px 16px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;overflow-x:auto}
+nav button{flex:1;min-width:max-content;padding:10px 12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:14px;font-weight:600}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{padding:8px 16px 40px;max-width:720px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:12px 0}
+.card h2{margin:0 0 8px;font-size:16px}
+.card h2 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:6px}
+.card.red{border-left:5px solid var(--bad)}
+.card.green{border-left:5px solid var(--ok)}
+.card.gold{border-left:5px solid var(--ac)}
+.card.warn{border-left:5px solid var(--warn)}
+ul.rules{margin:0;padding-left:18px}
+ul.rules li{margin:5px 0}
+label.it{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-top:1px solid var(--bd);cursor:pointer}
+label.it:first-of-type{border-top:none}
+label.it input{width:22px;height:22px;margin-top:1px;flex:none;accent-color:var(--ok)}
+label.it span{flex:1}
+label.it input:checked+span{color:var(--mut);text-decoration:line-through}
+.prog{font-size:12px;color:var(--mut);margin-bottom:4px}
+.bar{height:6px;background:var(--bd);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .2s}
+.reset{width:100%;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:14px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:6px 4px;border-top:1px solid var(--bd);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:12px;border-top:none}
+.note{font-size:13px;color:var(--mut)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Trading Plan · Nasdaq</h1>
+  <div class="sub">ICT · DOL + FVG · entradas IFVG / CISD</div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+const TABS = [
+ {id:'reglas', t:'Reglas'},
+ {id:'dia', t:'Análisis'},
+ {id:'antes', t:'Pre-entrada'},
+ {id:'durante', t:'Durante'},
+ {id:'despues', t:'Después'}
+];
+
+/* ========== REGLAS (referencia, sin checkbox) ========== */
+const REGLAS = [
+ {cls:'gold', h:'Mi estrategia', items:[
+  'Nasdaq · <b>ICT</b>. Condición de entrada: <b>tapeo a un FVG</b>.',
+  '<b>Continuación:</b> tomo un FVG como continuación hacia el DOL.',
+  '<b>Reversión:</b> espero el tapeo a un FVG (puede ser judas swing / manipulación hacia el FVG) y entro ahí para aprovechar la distribución.',
+  'Si no tomé nada hacia el DOL o no estaba claro: <b>espero a que el precio llegue a mi FVG de reversión</b> y me dé los parámetros de entrada.',
+  'Vigilo las <b>aperturas de vela 4H, 1H, 30m y 15m</b> para ver el PO3 de cada una.'
+ ]},
+ {cls:'gold', h:'Modelos de entrada (LTF: 5m, 1m, 30s, 15s)', items:[
+  '<b>1. IFVG</b> de low time frame.',
+  '<b>2. CISD</b> de low time frame.',
+  '<b>3. IFVG + CISD = entrada A+++</b>',
+  'El modelo debe darse <b>al 100%</b>. Si la entrada no se da bien, no tomo el trade.'
+ ]},
+ {cls:'gold', h:'Gestión de riesgo (evaluación)', items:[
+  'Riesgo: <b>2% por trade</b> (medio agresivo por ser eval).',
+  'Objetivo: <b>1:1</b>, o <b>1:2</b> si hay un buen DOL.',
+  '<b>Breakeven:</b> normalmente <b>no</b> me voy a BE, salvo que el movimiento sea muy fuerte.',
+  'En trades con mucho R:R puedo mover el SL a BE hasta las ganancias que quiero asegurar.',
+  'Máximo <b>2 trades por sesión</b>. <b>2 SL en una sesión → se acabó la sesión.</b>'
+ ], note:'Ojo: 2 SL de 2% = 4% en una sola sesión. Verifica contra el límite de pérdida diaria de tu eval, sobre todo si operas Asia y NY el mismo día.'},
+ {cls:'warn', h:'Horarios (hora de Nueva York)', table:[
+  ['Apertura NY','9:30 am','Operar'],
+  ['Apertura Asia','8:00 pm','Operar'],
+  ['Fuera de NY / Asia','—','No operar'],
+  ['Minutos antes de apertura de vela 15m / 30m / 1h','—','No abrir trade']
+ ], items:[
+  'Máximo <b>2 trades por sesión</b>.'
+ ]},
+ {cls:'red', h:'Cuándo NO operar', items:[
+  'No hay bias claro.',
+  'El mercado está muy feo y no me da confianza.',
+  'No hay un DOL claro.',
+  'Noticias.',
+  'El precio no se dirige hacia ningún FVG.',
+  'Después de 2 SL en una sesión.',
+  'Fuera de la sesión de NY o la de Asia.',
+  'Un trade que simplemente no me da confianza.',
+  'Minutos antes de una apertura de vela (15m, 30m o 1h): por el PO3, el precio puede manipular hacia abajo o arriba y sacarme por SL.',
+  'Después de haber hecho 2 trades en la sesión.'
+ ]},
+ {cls:'green', h:'Tener en cuenta al operar', items:[
+  '<b>SMT</b>: de lo más importante, es crucial.',
+  '<b>Stop hunts</b>: esperarlos antes de entrar.',
+  'Marcar highs y lows que sean zonas <b>claras de liquidez</b> y que <b>no sean HRL</b>.',
+  'Identificar la <b>LRL</b>: más probabilidad y TP más seguro.',
+  'Mis modelos de entrada se dan al 100% o no hay trade.',
+  'Solo trades de <b>alta probabilidad</b>.'
+ ]},
+ {cls:'gold', h:'Honestidad con los números', items:[
+  'Con 1:1 necesitas ganar <b>más del 50%</b> de tus trades para estar en positivo (más con spread/comisiones). Con 1:2 basta ~34%.',
+  'Este plan ordena la ejecución, no crea edge. Lleva el journal con cada trade (modelo, DOL, R, sesión) y revisa expectancy y PF cada 30–50 trades.',
+  'Cuando pierdas, clasifica: <b>setup válido que falló</b> vs <b>no seguí el plan</b>.'
+ ]}
+];
+
+/* ========== CHECKLISTS ========== */
+const CHECK = {
+ dia: [
+  {h:'Estado y cuenta', items:[
+   'Estoy tranquilo y con confianza; sin prisa ni necesidad de "recuperar".',
+   'Sé cuántos trades me quedan en la sesión (máx. 2) y que 2 SL = fin de sesión.',
+   'Revisé el límite de pérdida diaria de mi eval vs. riesgo de 2% por trade.',
+   'Revisé noticias del día y sus horas (no opero en noticias).'
+  ]},
+  {h:'Bias y DOL', items:[
+   'Revisé los draw on liquidity (DOL) para saber hacia dónde irá el mercado.',
+   'Definí el bias: alcista / bajista / sin bias claro (si no hay, no opero).',
+   'Marqué highs/lows de liquidez clara (que no sean HRL).',
+   'Identifiqué LRL y HRL.'
+  ]},
+  {h:'FVG HTF sin mitigar', items:[
+   'Marqué FVG sin mitigar en 1D.',
+   'Marqué FVG sin mitigar en 4H y 2H.',
+   'Marqué FVG sin mitigar en 1H y 30m.',
+   'Marqué FVG sin mitigar en 15m (y 5m si es posible).'
+  ]},
+  {h:'Escenario', items:[
+   'Escribí mi escenario: qué haría el precio, hacia qué DOL y en qué FVG espero la reacción.',
+   'Revisé las zonas de liquidez EN CONTRA de mi escenario que podrían hacer que falle.',
+   'Anoté qué haría si el escenario se invalida (no operar o escenario B).'
+  ]}
+ ],
+ antes: [
+  {h:'Contexto', items:[
+   'Estoy en sesión: apertura NY 9:30 am o apertura Asia 8:00 pm.',
+   'No estoy a minutos de una apertura de vela 15m / 30m / 1h.',
+   'Revisé las aperturas de vela 4H, 1H, 30m y 15m y el PO3 de cada una.',
+   'Hay un DOL claro y el precio se dirige hacia un FVG.',
+   'No hay noticias.'
+  ]},
+  {h:'Tipo de trade y condición', items:[
+   'Defino el tipo: continuación hacia el DOL / reversión en FVG.',
+   'Se dio el tapeo al FVG (condición de mis entradas).',
+   'Revisé SMT.',
+   'Esperé el stop hunt antes de entrar.',
+   'Identifiqué la LRL (TP más seguro).'
+  ]},
+  {h:'Modelo de entrada (LTF)', items:[
+   'IFVG de LTF (5m / 1m / 30s / 15s) y/o CISD de LTF confirmado.',
+   'El modelo se dio al 100% (si no, no tomo el trade).',
+   'Si hay IFVG + CISD = A+++.',
+   'Es un trade de alta probabilidad y me da confianza.'
+  ]},
+  {h:'Operación', items:[
+   'Entrada, SL y TP definidos (1:1 o 1:2 si hay buen DOL).',
+   'Lote calculado para arriesgar 2%.',
+   'Tomé screenshot del setup.'
+  ]}
+ ],
+ durante: [
+  {h:'Mientras el trade está abierto', items:[
+   'SL puesto desde el principio. No lo muevo en contra.',
+   'Sin agregar posiciones ni abrir otro trade.',
+   'No me voy a BE salvo que el movimiento sea muy fuerte.',
+   'Si el trade tiene mucho R:R: puedo mover el SL a BE hasta las ganancias que quiero asegurar.',
+   'No miro el gráfico cada minuto: dejo que el plan trabaje.'
+  ]}
+ ],
+ despues: [
+  {h:'Siempre (TP o SL)', items:[
+   'Cerré los gráficos.',
+   'Anoté todo en el journal (modelo, DOL, FVG, sesión, R, screenshot).',
+   'Califiqué la ejecución: ¿seguí el plan al 100%? Sí / No.',
+   'Espero hasta la próxima sesión (o hasta que todo se cumpla de nuevo para un segundo trade, máx. 2).'
+  ]},
+  {h:'Si fue SL', items:[
+   'Sin re-entrada inmediata ni "recuperar".',
+   'Clasifiqué: <b>setup válido que falló</b> o <b>error mío</b>.',
+   '2 SL en la sesión → fin de la sesión, cerré plataforma.'
+  ]},
+  {h:'Si fue TP', items:[
+   'Sin euforia: el siguiente trade sigue con las mismas reglas.',
+   'Anoté si el DOL se alcanzó y si dejé dinero en la mesa.',
+   'Si ya hice 2 trades → sesión terminada.'
+  ]},
+  {h:'Revisión', items:[
+   'Resumen semanal: trades, win rate, PF, expectancy, errores de disciplina.',
+   'Detecté patrones: qué modelo (IFVG / CISD / A+++) me da mejor resultado.'
+  ]}
+ ]
+};
+
+/* ========== STORAGE (try/catch) ========== */
+function load(){try{return JSON.parse(localStorage.getItem('tp3-checks')||'{}')}catch(e){return {}}}
+function save(s){try{localStorage.setItem('tp3-checks',JSON.stringify(s))}catch(e){}}
+let state = load();
+let cur = 'reglas';
+try{ const t = localStorage.getItem('tp3-tab'); if(t && TABS.some(x=>x.id===t)) cur=t; }catch(e){}
+
+/* ========== RENDER ========== */
+const nav=document.getElementById('nav'), main=document.getElementById('main');
+
+function renderNav(){
+  nav.innerHTML='';
+  TABS.forEach(t=>{
+    const b=document.createElement('button');
+    b.textContent=t.t; if(t.id===cur) b.className='on';
+    b.onclick=()=>{cur=t.id;try{localStorage.setItem('tp3-tab',cur)}catch(e){};renderNav();renderMain();window.scrollTo(0,0)};
+    nav.appendChild(b);
+  });
+}
+
+function renderReglas(){
+  let h='';
+  REGLAS.forEach(c=>{
+    h+=`<div class="card ${c.cls}"><h2>${c.h}</h2>`;
+    if(c.table){
+      h+='<table><tr><th>Sesión</th><th>Horario</th><th>Nota</th></tr>'+c.table.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')+'</table><div style="height:8px"></div>';
+    }
+    h+='<ul class="rules">'+c.items.map(i=>`<li>${i}</li>`).join('')+'</ul>';
+    if(c.note) h+=`<p class="note">${c.note}</p>`;
+    h+='</div>';
+  });
+  main.innerHTML=h;
+}
+
+function renderCheck(id){
+  const groups=CHECK[id];
+  let total=0, done=0, h='';
+  groups.forEach((g,gi)=>{
+    h+=`<div class="card"><h2>${g.h}</h2>`;
+    g.items.forEach((it,ii)=>{
+      const k=`${id}-${gi}-${ii}`; total++;
+      const on=!!state[k]; if(on) done++;
+      h+=`<label class="it"><input type="checkbox" data-k="${k}" ${on?'checked':''}><span>${it}</span></label>`;
+    });
+    h+='</div>';
+  });
+  const pct=total?Math.round(done/total*100):0;
+  main.innerHTML=`<div class="card"><div class="prog" id="prog">${done} / ${total} completado</div><div class="bar"><i id="barfill" style="width:${pct}%"></i></div></div>`+h+
+    `<button class="reset" id="rs">Reiniciar este checklist</button>`;
+  main.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange=()=>{
+      state[cb.dataset.k]=cb.checked; save(state);
+      const n=main.querySelectorAll('input:checked').length;
+      document.getElementById('prog').textContent=`${n} / ${total} completado`;
+      document.getElementById('barfill').style.width=Math.round(n/total*100)+'%';
+    };
+  });
+  document.getElementById('rs').onclick=()=>{
+    Object.keys(state).forEach(k=>{if(k.startsWith(id+'-')) delete state[k]});
+    save(state); renderMain();
+  };
+}
+
+function renderMain(){ cur==='reglas'?renderReglas():renderCheck(cur); }
+renderNav(); renderMain();
+</script>
+</body>
+</html>
